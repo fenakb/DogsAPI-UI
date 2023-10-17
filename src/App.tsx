@@ -2,80 +2,143 @@ import * as React from 'react';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
-import { Grid, Paper, styled } from '@mui/material';
-import axios from 'axios';
-import Box from '@mui/material/Box';
+import { Grid, Box, Menu, MenuItem, List, ListItem, ListItemText, ThemeProvider, CssBaseline, Paper } from '@mui/material';
 import LoopIcon from '@mui/icons-material/Loop';
 import { useEffect, useState } from 'react';
+import theme from './theme';
+import { fetchBreed, fetchBreeds, fetchRandomDogs, useRandomDogs } from './utils';
 
-interface DogObj {
+export interface DogObj {
   breed: string,
   url: string,
 }
-
 export default function App() {
-  const [dogs, setDogs] = useState<DogObj[]>([{ breed: 'boxer', url: '' }, { breed: 'dachshund', url: '' }, { breed: 'labrador', url: '' }, { breed: 'whippet', url: '' }]);
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [dogs, setDogs] = useState<DogObj[]>([]);
   const [isDataFetched, setIsDataFetched] = useState<boolean>(false);
+  const [openDropdown, setOpenDropdown] = useState<boolean>(false);
+  const [options, setOptions] = useState<any>();
 
-  const fetchDogs = ()=>{
-    dogs.map((dog: DogObj, i, {length}) => {
-      axios.get(`https://dog.ceo/api/breed/${dog.breed}/images/random`)
-        .then(response => setDogs((prev: DogObj[]) => {
-          const url = response.data.message;
-          let newState: DogObj[] = prev;
-          newState.map(obj => {
-            if (obj.breed === dog.breed) {
-              obj.url = url
-            }
-          });
-          if(i === length - 1){
-            setTimeout(()=>{
-              setIsDataFetched(true)
-            }, 1000) 
-          }
-          return newState;
-        })
-        );
-        
+  function setRandom(breeds: string[]) {
+    fetchRandomDogs(useRandomDogs(breeds, 9)).then((res) => {
+      setDogs(() => {
+        setTimeout(() => {
+          setIsDataFetched(true)
+        }, 1000)
+        return res
+      });
     })
   }
+
   useEffect(() => {
-    fetchDogs();
+    fetchBreeds().then(res => {
+      setOptions(res);
+      setRandom(Object.keys(res));
+    })
   }, [])
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ my: 4, textAlign: 'center' }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Here are some dogs why not
-        </Typography>
-        { isDataFetched ? <Grid container spacing={2} onClick={()=>{
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Container >
+        <Box sx={{ my: 4, textAlign: 'center', padding: '2rem' }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Here are some dogs why not
+          </Typography>
+          <div style={{ display: 'flex', flexDirection: 'row', padding: '2rem', alignItems: 'center' }}>
+            <List
+              component="nav"
+              aria-label="Device settings"
+              sx={{ bgcolor: 'background.paper' }}
+            >
+              <ListItem
+                onClick={(e: React.MouseEvent<HTMLElement>) => {
+                  setOpenDropdown(true);
+                  setAnchorEl(e.currentTarget);
+                }}
+              >
+                <ListItemText
+                  primary="Pick a breed"
+                />
+              </ListItem>
+            </List>
+            <Menu
+              id="lock-menu"
+              anchorEl={anchorEl}
+              open={openDropdown}
+              onClose={() => { setOpenDropdown(false) }}
+              MenuListProps={{
+                'aria-labelledby': 'lock-button',
+                role: 'listbox',
+              }}
+            >
+              {options ? Object.entries(options).map((option: [string, any], i: number) => {
+                if (option[1].length === 0) {
+                  return (<MenuItem
+                    key={option[0] + i}
+                    disabled={i === 0}
+                    onClick={() => {
+                      fetchBreed(option[0]).then((res) => {
+                        setDogs(() => {
+                          setIsDataFetched(false);
+                          setTimeout(() => {
+                            setIsDataFetched(true)
+                          }, 1000)
+                          setOpenDropdown(false)
+                          return res;
+                        })
+                      }
+                      )
+                    }}>
+                    {option}
+                  </MenuItem>)
+                }
+              }) : null}
+            </Menu>
+            <button onClick={() => {
+              setIsDataFetched(false);
+              if (options) setRandom(Object.keys(options));
+            }}>Random</button>
+          </div>
+        </Box>
+      </Container>
+      <Container sx={{
+        display: 'flex',
+        alignContent: 'center',
+        justifyContent: 'center',
+      }}>
+
+        {isDataFetched ? <Grid container spacing={{ xs: 2, md: 3 }} 
+        onClick={() => {
           setIsDataFetched(false);
-          fetchDogs();
+          fetchRandomDogs(dogs).then((res) => {
+            setDogs(() => {
+              setTimeout(() => {
+                setIsDataFetched(true)
+              }, 1000)
+              return res
+            });
+          })
         }}
-        sx={{
-          display: 'flex',
-          alignContent: 'center',
-          alignItems: 'center',
-          marginTop: '5px',
-          justifyContent: 'center',
-        }}>
-          {dogs.map((dog: DogObj, i) => {
-            return (<Grid key={i} sx={{padding: '2px', height: '300px', width: '80%'}}>
-              <img
-                style={{height:'100%',
-                width:'auto',}}
-                src={dog.url}
-                alt={dog.breed}
-                loading="lazy"
-                //height={'250px'}
-              />
+        >
+          {dogs.map((dog: DogObj, i: number) => {
+            return (<Grid item xs={2} sm={4} md={4} key={i} sx={{
+              width: '250px', height: '300px',
+            }}>
+              <Paper sx={{
+                height: '100%',
+                width: '100%',
+                backgroundImage: `url(${dog.url})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }} />
             </Grid>)
           }
           )}
         </Grid> : <LoopIcon fontSize='large' sx={{
           animation: 'lds-roller 1.1s infinite ease',
-        }}/>}
-      </Box>
-    </Container>
+        }} />}
+      </Container>
+    </ThemeProvider>
   );
 }
