@@ -13,7 +13,7 @@ export const fetchBreeds = async () => {
 
  export const fetchBreed = async (breed: string) => {
     let dogsObj: DogObj[] = [];
-    for(let i = 0; i < 3; i++){
+    for(let i = 0; i < 9; i++){
       axios.get(`https://dog.ceo/api/breed/${breed}/images/random`)
       .then(response => {
         const url = response.data.message

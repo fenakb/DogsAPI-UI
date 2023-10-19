@@ -7,6 +7,7 @@ import LoopIcon from '@mui/icons-material/Loop';
 import { useEffect, useState } from 'react';
 import theme from './theme';
 import { fetchBreed, fetchBreeds, fetchRandomDogs, useRandomDogs } from './utils';
+import Icon from './components/Icon';
 
 export interface DogObj {
   breed: string,
@@ -39,12 +40,16 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <div style={{float: 'right', marginRight: '10px'}}><Icon icon='config' onClick={()=>{console.log('yay')}}/></div>
       <Container >
+        
         <Box sx={{ my: 4, textAlign: 'center', padding: '2rem' }}>
           <Typography variant="h4" component="h1" gutterBottom>
             Here are some dogs why not
           </Typography>
-          <div style={{ display: 'flex', flexDirection: 'row', padding: '2rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'row', gap: '5px', alignItems: 'center'}}>
+          <Icon icon='paw'/>
             <List
               component="nav"
               aria-label="Device settings"
@@ -94,10 +99,18 @@ export default function App() {
                 }
               }) : null}
             </Menu>
+            </div>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: '5px'
+            }}>
+            <Icon icon='paw'/>
             <button onClick={() => {
               setIsDataFetched(false);
               if (options) setRandom(Object.keys(options));
             }}>Random</button>
+            </div>
           </div>
         </Box>
       </Container>

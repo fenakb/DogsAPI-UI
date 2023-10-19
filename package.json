@@ -9,13 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "latest",
+    "@emotion/react": "^11.11.1",
     "@emotion/styled": "latest",
     "@mui/icons-material": "latest",
     "@mui/material": "latest",
     "axios": "^1.5.1",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "theme-ui": "^0.16.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.25",
